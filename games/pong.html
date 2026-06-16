@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pong</title>
+<style>
+body{
+    background:#111;
+    text-align:center;
+}
+canvas{
+    background:black;
+}
+</style>
+</head>
+<body>
+
+<h1 style="color:white;">Pong</h1>
+<canvas id="pong" width="600" height="400"></canvas>
+
+<script>
+const canvas = document.getElementById("pong");
+const ctx = canvas.getContext("2d");
+
+let paddleY = 150;
+let ballX = 300;
+let ballY = 200;
+let vx = 4;
+let vy = 4;
+
+document.addEventListener("mousemove", e=>{
+    paddleY = e.clientY - 80;
+});
+
+function game(){
+    ctx.clearRect(0,0,600,400);
+
+    ctx.fillStyle="white";
+
+    ctx.fillRect(10,paddleY,10,80);
+
+    ballX += vx;
+    ballY += vy;
+
+    if(ballY<0 || ballY>400) vy *= -1;
+
+    if(ballX<20 &&
+       ballY>paddleY &&
+       ballY<paddleY+80){
+        vx *= -1;
+    }
+
+    if(ballX>600 || ballX<0){
+        ballX=300;
+        ballY=200;
+    }
+
+    ctx.beginPath();
+    ctx.arc(ballX,ballY,10,0,Math.PI*2);
+    ctx.fill();
+}
+
+setInterval(game,16);
+</script>
+
+</body>
+</html>
