@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>English AQA Revision guide</title>
+
+<style>
+body{
+    background:#111827;
+    color:white;
+    font-family:Arial,sans-serif;
+    text-align:center;
+}
+
+canvas{
+    background:#000;
+    margin-top:20px;
+    border:3px solid #38bdf8;
+}
+
+h1{
+    color:#38bdf8;
+}
+
+#score{
+    font-size:24px;
+}
+</style>
+</head>
+<body>
+
+<h1>🎮 Tetris</h1>
+<p>Arrow Keys: Move | Up Arrow: Rotate</p>
+<div id="score">Score: 0</div>
+
+<canvas id="game" width="300" height="600"></canvas>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+const COLS = 10;
+const ROWS = 20;
+const BLOCK = 30;
+
+let score = 0;
+
+const colors = [
+    null,
+    "#00f0f0",
+    "#0000f0",
+    "#f0a000",
+    "#f0f000",
+    "#00f000",
+    "#a000f0",
+    "#f00000"
+];
+
+const pieces = [
+    [],
+    [[1,1,1,1]],
+    [[2,0,0],[2,2,2]],
+    [[0,0,3],[3,3,3]],
+    [[4,4],[4,4]],
+    [[0,5,5],[5,5,0]],
+    [[0,6,0],[6,6,6]],
+    [[7,7,0],[0,7,7]]
+];
+
+function createBoard(){
+    return Array.from({length:ROWS},()=>Array(COLS).fill(0));
+}
+
+let board = createBoard();
+
+function randomPiece(){
+    const type = Math.floor(Math.random()*7)+1;
+    return {
+        matrix: pieces[type],
+        x: 3,
+        y: 0
+    };
+}
+
+let player = randomPiece();
+
+function drawMatrix(matrix, offset){
+    matrix.forEach((row,y)=>{
+        row.forEach((value,x)=>{
+            if(value){
+                ctx.fillStyle = colors[value];
+                ctx.fillRect(
+                    (x+offset.x)*BLOCK,
+                    (y+offset.y)*BLOCK,
+                    BLOCK,
+                    BLOCK
+                );
+
+                ctx.strokeStyle="#111";
+                ctx.strokeRect(
+                    (x+offset.x)*BLOCK,
+                    (y+offset.y)*BLOCK,
+                    BLOCK,
+                    BLOCK
+                );
+            }
+        });
+    });
+}
+
+function draw(){
+    ctx.fillStyle="black";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    drawMatrix(board,{x:0,y:0});
+    drawMatrix(player.matrix,{x:player.x,y:player.y});
+}
+
+function collide(board,player){
+    const m = player.matrix;
+    const o = player;
+
+    for(let y=0;y<m.length;y++){
+        for(let x=0;x<m[y].length;x++){
+            if(
+                m[y][x] &&
+                (
+                    board[y+o.y] &&
+                    board[y+o.y][x+o.x]
+                ) !== 0
+            ){
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+function merge(board,player){
+    player.matrix.forEach((row,y)=>{
+        row.forEach((value,x)=>{
+            if(value){
+                board[y+player.y][x+player.x] = value;
+            }
+        });
+    });
+}
+
+function rotate(matrix){
+    return matrix[0].map((_,i)=>
+        matrix.map(row=>row[i]).reverse()
+    );
+}
+
+function clearLines(){
+    let lines = 0;
+
+    outer:
+    for(let y=board.length-1;y>=0;y--){
+        for(let x=0;x<COLS;x++){
+            if(board[y][x]===0){
+                continue outer;
+            }
+        }
+
+        board.splice(y,1);
+        board.unshift(Array(COLS).fill(0));
+        lines++;
+        y++;
+    }
+
+    score += lines * 100;
+    document.getElementById("score").textContent =
+        "Score: " + score;
+}
+
+function playerDrop(){
+    player.y++;
+
+    if(collide(board,player)){
+        player.y--;
+        merge(board,player);
+        clearLines();
+
+        player = randomPiece();
+
+        if(collide(board,player)){
+            board = createBoard();
+            score = 0;
+            document.getElementById("score").textContent =
+                "Score: 0";
+        }
+    }
+
+    dropCounter = 0;
+}
+
+document.addEventListener("keydown",e=>{
+    if(e.key==="ArrowLeft"){
+        player.x--;
+        if(collide(board,player)) player.x++;
+    }
+
+    if(e.key==="ArrowRight"){
+        player.x++;
+        if(collide(board,player)) player.x--;
+    }
+
+    if(e.key==="ArrowDown"){
+        playerDrop();
+    }
+
+    if(e.key==="ArrowUp"){
+        const old = player.matrix;
+        player.matrix = rotate(player.matrix);
+
+        if(collide(board,player)){
+            player.matrix = old;
+        }
+    }
+});
+
+let dropCounter = 0;
+let lastTime = 0;
+
+function update(time=0){
+    const delta = time - lastTime;
+    lastTime = time;
+
+    dropCounter += delta;
+
+    if(dropCounter > 600){
+        playerDrop();
+    }
+
+    draw();
+    requestAnimationFrame(update);
+}
+
+update();
+</script>
+
+</body>
+</html>
