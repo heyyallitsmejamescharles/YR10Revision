@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Rock Paper Scissors</title>
+<style>
+body{
+text-align:center;
+background:#111827;
+color:white;
+font-family:Arial;
+}
+button{
+padding:15px;
+margin:10px;
+font-size:20px;
+}
+</style>
+</head>
+<body>
+
+<h1>Rock Paper Scissors</h1>
+
+<button onclick="play('Rock')">🪨 Rock</button>
+<button onclick="play('Paper')">📄 Paper</button>
+<button onclick="play('Scissors')">✂️ Scissors</button>
+
+<h2 id="result"></h2>
+
+<script>
+function play(player){
+
+const choices=["Rock","Paper","Scissors"];
+const cpu=choices[Math.floor(Math.random()*3)];
+
+let result;
+
+if(player===cpu){
+result="Draw";
+}
+else if(
+(player==="Rock"&&cpu==="Scissors")||
+(player==="Paper"&&cpu==="Rock")||
+(player==="Scissors"&&cpu==="Paper")
+){
+result="You Win!";
+}else{
+result="You Lose!";
+}
+
+document.getElementById("result").innerHTML=
+`You: ${player}<br>CPU: ${cpu}<br><br>${result}`;
+}
+</script>
+
+</body>
+</html>
